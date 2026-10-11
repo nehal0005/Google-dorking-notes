@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Google Dorking: Deep Notes</title>
+<style>
+:root{--bg:#000;--panel:#100608;--line:#3a0e16;--g:#ff3b4e;--g2:#d4202f;--dim:#b08088;--txt:#f5dcdf;--warn:#ffd24a;--bad:#9a9a9a;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.65 "Segoe UI",system-ui,sans-serif}
+code,.m,pre,input,button{font-family:"JetBrains Mono",ui-monospace,Consolas,Menlo,monospace}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;display:flex;align-items:center;gap:10px;padding:10px 18px;background:#000d;backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.top b{color:var(--g);font-size:15px;letter-spacing:.5px;text-shadow:0 0 12px #ff3b4e66}
+.top i{width:9px;height:9px;border-radius:50%;background:var(--g);box-shadow:0 0 10px var(--g)}
+main{max-width:920px;margin:0 auto;padding:24px 18px 80px}
+h1{font-size:clamp(30px,6vw,52px);line-height:1.1;margin:.2em 0;color:var(--g);text-shadow:0 0 18px #ff3b4e55}
+h2{font-size:26px;color:var(--g);margin:56px 0 6px}
+h2::before{content:"$ ";color:var(--dim)}
+h3{margin:0 0 6px;color:var(--g)}
+p{margin:.5em 0}
+.sub{color:var(--dim);max-width:60ch}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:14px 0}
+.easy{border-left:3px solid var(--g);background:#140305;padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0}
+.easy b{color:var(--g)}
+.warn{border-left:3px solid var(--warn);background:#161200;padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0}
+code{background:#1a0508;color:var(--g);padding:1px 6px;border-radius:4px;border:1px solid var(--line);font-size:.9em}
+.hero{padding:30px 0 6px}
+/* lab */
+.lab{border:1px solid var(--g2);border-radius:12px;background:#0c0204;padding:16px;box-shadow:0 0 30px #ff3b4e18}
+.bar{display:flex;gap:6px;margin-bottom:10px}.bar i{width:11px;height:11px;border-radius:50%;background:var(--line)}
+.q{display:flex;gap:8px;flex-wrap:wrap}
+.q input{flex:1;min-width:200px;background:#000;border:1px solid var(--g2);color:var(--g);padding:12px;border-radius:8px;font-size:15px}
+button{background:#1a0508;color:var(--g);border:1px solid var(--g2);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:13px}
+button:hover,button:focus-visible{background:var(--g);color:#000;outline:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.out{min-height:70px;margin-top:10px}
+.tok{display:flex;gap:10px;align-items:baseline;padding:5px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.tok code{flex:none}
+.tok span{color:var(--txt)}
+.go{display:inline-block;margin-top:10px;color:#000;background:var(--g);padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600}
+/* pipeline */
+.pipe{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:14px 0}
+.node{border:1px solid var(--g2);border-radius:10px;padding:12px;background:var(--panel);position:relative}
+.node b{color:var(--g);display:block}
+.node.no{border-color:var(--bad)}.node.no b{color:var(--bad)}
+/* levels */
+details{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin:12px 0}
+details[open]{border-color:var(--g2)}
+summary{cursor:pointer;padding:14px 16px;font-weight:600;color:var(--g);list-style:none;display:flex;gap:12px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary .lv{flex:none;font-family:ui-monospace,Consolas,monospace;border:1px solid var(--g2);border-radius:6px;padding:2px 8px;font-size:12px;color:#000;background:var(--g)}
+summary small{color:var(--dim);font-weight:400;margin-left:auto;text-align:right}
+.body{padding:0 18px 16px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--g);font-weight:600}
+td:first-child{white-space:nowrap}
+/* flashcards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.fc{min-height:130px;text-align:left;border:1px solid var(--g2);background:var(--panel);color:var(--txt);border-radius:10px;padding:14px;font-size:14px;line-height:1.5;font-family:inherit}
+.fc .a{display:none;color:var(--g)}
+.fc.on .a{display:block}.fc.on .qq{display:none}
+.fc:hover{background:#1c060a;color:var(--txt)}
+.fc small{color:var(--dim);display:block;margin-top:8px}
+/* checklist */
+.chk label{display:flex;gap:10px;align-items:flex-start;padding:7px 0;cursor:pointer}
+.chk input{accent-color:var(--g);margin-top:5px;width:16px;height:16px}
+.chk input:checked+span{color:var(--dim);text-decoration:line-through}
+.prog{height:8px;background:var(--line);border-radius:6px;overflow:hidden;margin:8px 0}
+.prog div{height:100%;width:0;background:var(--g);transition:width .3s}
+.mist{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.mist div{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--panel)}
+.mist s{color:var(--bad)}.mist em{color:var(--g);font-style:normal}
+footer{margin-top:60px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);padding-top:14px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="top"><i></i><b class="m">Nehal's notes</b></header>
+<main>
+
+<section class="hero">
+<p class="m" style="color:var(--dim);margin:0">cybersecurity / osint / authorized research</p>
+<h1>Google Dorking,<br>explained like you're new</h1>
+<p class="sub">Deep notes from zero to advanced. Every idea has a plain-English version. Start by playing with the lab below, then open the levels.</p>
+
+<div class="lab" id="lab">
+<div class="bar"><i></i><i></i><i></i></div>
+<div class="m" style="color:var(--dim);font-size:13px">query lab: tap chips to build a search, then read what each part does</div>
+<div class="chips" id="chips"></div>
+<div class="q"><input id="qin" aria-label="Search query" value='site:cisa.gov phishing awareness filetype:pdf'><button id="clr">clear</button></div>
+<div class="out" id="out"></div>
+</div>
+</section>
+
+<h2>The big idea</h2>
+<div class="easy"><b>In easy words:</b> Google is like a giant library catalog. A normal search is asking the librarian "do you have anything about phishing?" Dorking is asking "show me only PDFs, from CISA's shelf, published after 2025, that mention phishing." Same librarian, a much sharper question.</div>
+<p>A <b>dork</b> is just a search query that uses special words called <b>operators</b>. The name comes from the Google Hacking Database, a public catalog of such queries that defenders study to learn what can accidentally end up searchable.</p>
+
+<h2>How Google actually finds things</h2>
+<p>This is the part that makes everything else click.</p>
+<div class="pipe">
+<div class="node"><b>1. Crawl</b>A bot (Googlebot) follows links from page to page and reads them.</div>
+<div class="node"><b>2. Index</b>Google stores a copy of what it read, in a giant organized list.</div>
+<div class="node"><b>3. Search</b>You type a query. Google looks in <i>its list</i>, not at the real website.</div>
+<div class="node no"><b>Not allowed in</b>Pages behind logins, blocked pages, things never linked anywhere.</div>
+</div>
+<div class="easy"><b>Why this matters:</b> when you dork, you are reading Google's notebook about a site. You are not touching the site. That is why it is called <b>passive</b> recon. But if a private file made it into that notebook by mistake, that is exactly the kind of mistake defenders want to catch.</div>
+
+<h2>Level path</h2>
+<p class="sub">Open a level. Do the tiny exercise at the end of each before moving on.</p>
+
+<details open>
+<summary><span class="lv">L1</span>Foundations<small>what and why</small></summary>
+<div class="body">
+<p><b>Four jobs of dorking:</b> research (find official guides), OSINT (verify public info), defence (check your own site), learning (practise query thinking).</p>
+<div class="tw"><table>
+<tr><th>Word</th><th>Easy meaning</th></tr>
+<tr><td>OSINT</td><td>Detective work using only public information</td></tr>
+<tr><td>Passive recon</td><td>Looking without knocking on the door</td></tr>
+<tr><td>Active recon</td><td>Knocking on the door (scans, probes). Needs permission.</td></tr>
+<tr><td>SERP</td><td>The results page you see after searching</td></tr>
+<tr><td>Scope</td><td>The list of things you are allowed to look at</td></tr>
+</table></div>
+<div class="warn"><b>Golden rule:</b> "public" does not mean "free to use". Seeing something is not permission to touch it.</div>
+<p class="m" style="color:var(--dim)">exercise: explain crawling, indexing and searching to a friend in 3 sentences.</p>
+</div>
+</details>
+
+<details>
+<summary><span class="lv">L2</span>Core operators<small>the seven that matter</small></summary>
+<div class="body">
+<div class="tw"><table>
+<tr><th>Operator</th><th>In easy words</th><th>Try it</th></tr>
+<tr><td><code>"phrase"</code></td><td>Words must appear together, exactly in this order</td><td><code>"cybersecurity framework"</code></td></tr>
+<tr><td><code>site:</code></td><td>Only look on this website</td><td><code>site:cisa.gov phishing</code></td></tr>
+<tr><td><code>filetype:</code></td><td>Only this kind of file</td><td><code>site:nist.gov filetype:pdf</code></td></tr>
+<tr><td><code>-word</code></td><td>Remove anything with this word</td><td><code>phishing -video</code></td></tr>
+<tr><td><code>OR</code></td><td>This one or that one (capital letters)</td><td><code>malware OR phishing</code></td></tr>
+<tr><td><code>after:</code> <code>before:</code></td><td>Date fences</td><td><code>ransomware after:2025-01-01</code></td></tr>
+<tr><td><code>intitle:</code> <code>inurl:</code></td><td>Word must be in the page title, or in the web address</td><td><code>site:owasp.org inurl:projects</code></td></tr>
+</table></div>
+<div class="easy"><b>Never forget:</b> no space after the colon. <code>site:cisa.gov</code> works, <code>site: cisa.gov</code> breaks. The minus must touch its word: <code>-video</code>.</div>
+<p><b>Build it like Lego:</b> broad topic, then add <code>site:</code>, then <code>filetype:</code>, then <code>-noise</code>. One block at a time, so you can see which block changed the results.</p>
+<p class="m" style="color:var(--dim)">exercise: find a PDF about ransomware on nist.gov from the last two years.</p>
+</div>
+</details>
+
+<details>
+<summary><span class="lv">L3</span>Combining and logic<small>brackets, excluding, debugging</small></summary>
+<div class="body">
+<p><b>Brackets are like maths.</b> They decide what OR applies to.</p>
+<p><code>site:cisa.gov (phishing OR ransomware) filetype:pdf</code></p>
+<p><b>Search two sources at once:</b> <code>(site:cisa.gov OR site:nist.gov) "incident response"</code></p>
+<p><b>Ban noisy sites:</b> <code>zero trust -site:wikipedia.org -site:youtube.com</code></p>
+<div class="tw"><table>
+<tr><th>Problem</th><th>Fix</th></tr>
+<tr><td>Zero results</td><td>You stacked too much. Remove the last filter you added.</td></tr>
+<tr><td>Too much junk</td><td>Add a <code>site:</code> or put the key words in quotes.</td></tr>
+<tr><td>Results are old</td><td>Add <code>after:</code> with a recent date.</td></tr>
+<tr><td>Operator ignored</td><td>Google changed it. Test a simpler version.</td></tr>
+</table></div>
+<p class="m" style="color:var(--dim)">exercise: write a query for CERT-In OR CISA advisories about phishing, PDFs only, since 2025.</p>
+</div>
+</details>
+
+<details>
+<summary><span class="lv">L4</span>Advanced operators<small>power moves with honest limits</small></summary>
+<div class="body">
+<div class="tw"><table>
+<tr><th>Trick</th><th>Easy explanation</th><th>Example</th></tr>
+<tr><td><code>*</code></td><td>A blank to fill in. Stands for unknown words inside a quote.</td><td><code>"zero trust * architecture"</code></td></tr>
+<tr><td><code>AROUND(n)</code></td><td>Two words must be within n words of each other</td><td><code>phishing AROUND(4) awareness</code></td></tr>
+<tr><td><code>2022..2025</code></td><td>Any number in this range</td><td><code>"security report" 2022..2025</code></td></tr>
+<tr><td><code>inanchor:</code></td><td>Pages that other sites link to with this text</td><td><code>inanchor:"incident response"</code></td></tr>
+<tr><td><code>allintitle:</code></td><td>All these words must be in the title (use alone)</td><td><code>allintitle: phishing guide</code></td></tr>
+<tr><td><code>site:x.com -www</code></td><td>Peek at indexed subdomains of a domain you own</td><td>use on <i>your</i> domain</td></tr>
+</table></div>
+<div class="warn"><b>Heads up:</b> Google removes and changes operators. The cached-page link was removed in 2024, <code>link:</code> and <code>related:</code> are gone or unreliable. Old dork lists online are often outdated, so always test. For old page versions, use the Internet Archive.</div>
+<p><b>Other helpers:</b> the Tools menu for date ranges, Google Advanced Search form (operators without typing), Verbatim mode (stops Google guessing synonyms).</p>
+<p class="m" style="color:var(--dim)">exercise: compare an exact phrase with an AROUND(5) version. Which gave more useful results?</p>
+</div>
+</details>
+
+<details>
+<summary><span class="lv">L5</span>Professional workflow<small>how real analysts work</small></summary>
+<div class="body">
+<p><b>The 7-step loop:</b> ask a clear question, pick official sources, build the query one block at a time, collect only what you need, verify on the real page, document it, report neutrally.</p>
+<div class="easy"><b>Why verify?</b> A search snippet is a trailer, not the movie. It can be old, cut off, or from a lookalike domain. Always open the real page and check the domain spelling and date.</div>
+<h3>Defender's audit of your own domain</h3>
+<p>Only for a domain you own or have written permission to review. Tick as you go:</p>
+<div class="chk" id="chk">
+<label><input type="checkbox"><span>Write down the scope and who authorized it</span></label>
+<label><input type="checkbox"><span><code>site:YOUR-DOMAIN</code> and skim for pages you did not expect</span></label>
+<label><input type="checkbox"><span><code>site:YOUR-DOMAIN filetype:pdf</code> and check each file is meant to be public</span></label>
+<label><input type="checkbox"><span><code>site:YOUR-DOMAIN -www</code> to spot forgotten test subdomains</span></label>
+<label><input type="checkbox"><span>Log each finding: query, date, URL, neutral note (redact private data)</span></label>
+<label><input type="checkbox"><span>Fix at the source: login, move or delete the file. Then request removal in Search Console</span></label>
+<label><input type="checkbox"><span>Re-check later and mark the status: open, fixed, verified</span></label>
+</div>
+<div class="prog"><div id="pb"></div></div>
+<div class="easy"><b>Key lesson:</b> deleting a Google result does not lock the door. The file is still on the server. Fix the file, not just the listing. Also, <code>robots.txt</code> is a polite sign, not a lock, and it is public. Use <code>noindex</code> to keep pages out of search and real authentication to protect them.</div>
+<h3>If you stumble on something sensitive</h3>
+<p>Stop. Do not open more, download, test or share. Note only the location, then tell the owner through an official security contact (look for a <code>/.well-known/security.txt</code> file). Follow their instructions.</p>
+<h3>Bug bounty basics</h3>
+<p>Read the program scope first. Only test what is listed. Report through the official channel. Never demand money or post publicly. A good report says what, where, when, why it matters, and how to fix it.</p>
+<p><b>Laws to know:</b> India's IT Act 2000 (sections on unauthorized access), UK Computer Misuse Act 1990, US CFAA. Written permission is your shield.</p>
+</div>
+</details>
+
+<details>
+<summary><span class="lv">L6</span>Beyond Google<small>wider toolkit and career</small></summary>
+<div class="body">
+<div class="tw"><table>
+<tr><th>Source</th><th>What it gives you</th></tr>
+<tr><td>Bing, DuckDuckGo, Yandex</td><td>Different indexes. A miss on Google can hit elsewhere. Operators differ, so test.</td></tr>
+<tr><td>Wayback Machine</td><td>Old versions of pages</td></tr>
+<tr><td>Certificate transparency (crt.sh)</td><td>Subdomains of a domain you are authorized to assess</td></tr>
+<tr><td>WHOIS and DNS</td><td>Who owns a domain and how it is set up</td></tr>
+<tr><td>Shodan, Censys</td><td>Search engines for internet-connected services, used for authorized exposure checks</td></tr>
+<tr><td>GitHub search</td><td>Defenders check their own organization for accidentally public code</td></tr>
+<tr><td>File metadata (ExifTool)</td><td>Author names and software hidden inside documents you are allowed to examine</td></tr>
+</table></div>
+<p><b>Automation:</b> heavy scripted searching breaks Google's terms and gets you blocked. Use official APIs (Programmable Search) if you must automate. Learn the manual logic first.</p>
+<p><b>Where this skill shows up:</b> attack surface management, threat intelligence, digital forensics, recon stage of authorized pentests, blue-team exposure checks. For your portfolio, a short sanitized write-up of an authorized audit of your own site is a strong item.</p>
+</div>
+</details>
+
+<h2>Deep dive</h2>
+<p class="sub">Extra detail for when the levels feel too short. Each block opens and closes.</p>
+
+<details>
+<summary><span class="lv">D1</span>How Google reads your query<small>the hidden rules</small></summary>
+<div class="body">
+<div class="tw"><table>
+<tr><th>Rule</th><th>What it means for you</th></tr>
+<tr><td>Default is AND</td><td>Every word you type is expected to appear. <code>phishing awareness</code> means both words.</td></tr>
+<tr><td>Not case sensitive</td><td><code>CISA.gov</code> and <code>cisa.gov</code> act the same. Only <code>OR</code> needs capitals.</td></tr>
+<tr><td>Punctuation is mostly ignored</td><td>Commas and most symbols do nothing. Quotes, minus, brackets and star are the special ones.</td></tr>
+<tr><td>Google guesses synonyms</td><td>Without quotes, it may swap in similar words. Quotes or Verbatim mode switch that off.</td></tr>
+<tr><td><code>site:</code> accepts levels</td><td>A full domain (<code>site:nist.gov</code>), a whole country or type of site (<code>site:gov.in</code>, <code>site:edu</code>), or a subdomain.</td></tr>
+<tr><td>Query length is limited</td><td>Very long queries get cut off (roughly 30+ words). Keep them short and sharp.</td></tr>
+<tr><td>Results are capped</td><td>You never see "everything". Google shows a limited number of pages even for huge topics, so narrow instead of scrolling.</td></tr>
+<tr><td>Results are personal</td><td>Your location, language, history and account can change the order. Use a private window when you want a neutral view.</td></tr>
+</table></div>
+<div class="easy"><b>In easy words:</b> think of Google as a very keen assistant who adds helpful guesses. Dorking is you telling the assistant, "No guessing. Do exactly what I typed."</div>
+</div>
+</details>
+
+<details>
+<summary><span class="lv">D2</span>Recipe book by goal<small>safe, public-source queries</small></summary>
+<div class="body">
+<div class="tw"><table>
+<tr><th>I want to...</th><th>Recipe</th><th>Why it works</th></tr>
+<tr><td>Find official awareness material</td><td><code>site:cisa.gov filetype:pdf "phishing"</code></td><td>Trusted domain + document type</td></tr>
+<tr><td>See only recent guidance</td><td><code>site:nist.gov "incident response" after:2024-01-01</code></td><td>Date fence removes outdated advice</td></tr>
+<tr><td>Compare two agencies</td><td><code>(site:cisa.gov OR site:cert-in.org.in) ransomware</code></td><td>One search, two sources</td></tr>
+<tr><td>Find all standards on one topic</td><td><code>site:nist.gov inurl:publications "zero trust"</code></td><td>URL path narrows to a section</td></tr>
+<tr><td>Cut out marketing noise</td><td><code>"incident response" -site:linkedin.com -site:youtube.com</code></td><td>Exclude chatty sites</td></tr>
+<tr><td>Study material from universities</td><td><code>site:edu "digital forensics" filetype:pdf</code></td><td>Whole site type + format</td></tr>
+<tr><td>Government resources in India</td><td><code>site:gov.in "cyber security" filetype:pdf</code></td><td>Country-level domain filter</td></tr>
+<tr><td>Find titles you half remember</td><td><code>"security * guidelines" site:nist.gov</code></td><td>Star fills the blank</td></tr>
+<tr><td>Check what your own club site shows</td><td><code>site:YOUR-DOMAIN</code></td><td>Rough view of the indexed pages</td></tr>
+</table></div>
+<p><b>Thinking pattern:</b> ask three questions before typing. <i>Where</i> should the answer live (site)? <i>What form</i> will it be in (filetype)? <i>When</i> must it be from (date)? Then add the topic last.</p>
+</div>
+</details>
+
+<details>
+<summary><span class="lv">D3</span>Story: auditing a club website<small>a made-up example from start to finish</small></summary>
+<div class="body">
+<p>Riya runs the website of her college tech club, <code>example-club.in</code> (a pretend domain). The principal gave written permission to check what Google shows about it.</p>
+<div class="tw"><table>
+<tr><th>Step</th><th>What Riya did</th><th>What she learned</th></tr>
+<tr><td>1</td><td>Wrote the scope: only <code>example-club.in</code>, only searching, no logging in, no downloading private files.</td><td>Permission is on paper before any search.</td></tr>
+<tr><td>2</td><td><code>site:example-club.in</code></td><td>About 40 pages, including an old "2022 event" page she forgot.</td></tr>
+<tr><td>3</td><td><code>site:example-club.in filetype:pdf</code></td><td>Seven PDFs. Six were public brochures. One was a members' name list with phone numbers.</td></tr>
+<tr><td>4</td><td>She stopped there. No downloading, no sharing. She noted the URL and the query only.</td><td>The "stop" rule matters most at this moment.</td></tr>
+<tr><td>5</td><td>Told the club admin and principal right away.</td><td>Reporting goes to the owner, not to friends.</td></tr>
+<tr><td>6</td><td>Admin removed the file from the server, then asked Google to remove the cached listing.</td><td>Fix the source first, listing second.</td></tr>
+<tr><td>7</td><td>Re-searched a week later and marked the finding "verified by owner".</td><td>A finding is only done when someone confirms the fix.</td></tr>
+</table></div>
+<div class="easy"><b>Moral:</b> Dorking found the problem in two searches. What made Riya a professional was what she did <i>after</i> the search: stop, protect, report, verify.</div>
+</div>
+</details>
+
+<details>
+<summary><span class="lv">D4</span>A filled-in report<small>copy the style</small></summary>
+<div class="body">
+<div class="tw"><table>
+<tr><th>Field</th><th>Example entry</th></tr>
+<tr><td>Finding ID</td><td>OSINT-01</td></tr>
+<tr><td>Scope</td><td>example-club.in (written approval from the principal, dated 3 Oct)</td></tr>
+<tr><td>Date and analyst</td><td>10 Oct 2026, Riya</td></tr>
+<tr><td>Query</td><td><code>site:example-club.in filetype:pdf</code></td></tr>
+<tr><td>Observation</td><td>One indexed PDF at /docs/members.pdf appears to be a member list. Not opened beyond the search preview.</td></tr>
+<tr><td>Potential impact</td><td>Personal contact details of students may be visible to anyone. Not confirmed beyond the preview.</td></tr>
+<tr><td>Severity</td><td>Medium. Personal data, but small audience.</td></tr>
+<tr><td>Recommendation</td><td>Remove file or put behind login. Request removal from Google results. Review the upload process.</td></tr>
+<tr><td>Status</td><td>Reported to owner 10 Oct. Verified fixed 17 Oct.</td></tr>
+</table></div>
+<p><b>Writing tips:</b> use neutral words ("appears to"), say what you did <i>not</i> do, never paste the private data into your report, and keep each finding to one page.</p>
+</div>
+</details>
+
+<details>
+<summary><span class="lv">D5</span>OSINT thinking skills<small>how analysts reason</small></summary>
+<div class="body">
+<p><b>Pivoting:</b> one result leads to the next question. An agency page names a report title, so you search that exact title in quotes to find the original PDF and its date.</p>
+<p><b>Source ranking:</b></p>
+<div class="tw"><table>
+<tr><th>Tier</th><th>Example</th><th>Trust</th></tr>
+<tr><td>Primary</td><td>The agency's own website or document</td><td>Highest</td></tr>
+<tr><td>Secondary</td><td>News article quoting the agency</td><td>Good, but check the original</td></tr>
+<tr><td>Tertiary</td><td>Forum post, social media, summary blog</td><td>Lead only, never proof</td></tr>
+</table></div>
+<p><b>Confidence words:</b> say <i>confirmed</i> (verified on the primary source), <i>likely</i> (two decent sources agree), or <i>unverified</i> (one weak source). Never write "proves" when you mean "suggests".</p>
+<p><b>Evidence hygiene:</b> save the URL, date and time, the exact query, and a screenshot with the address bar visible. Redact personal data in anything you keep.</p>
+<p><b>Privacy law in plain words:</b> collecting information about people brings duties. India's Digital Personal Data Protection Act 2023 and Europe's GDPR both reward <i>collecting the minimum</i>. Searching for official guidance rarely raises this. Searching for information about a person always does, so have a clear lawful purpose.</p>
+<div class="warn"><b>Bias check:</b> we notice what matches our guess. Before you finish, ask: "What would I expect to see if I were wrong?" Then search for that.</div>
+</div>
+</details>
+
+<details>
+<summary><span class="lv">D6</span>The defender's side in depth<small>why things leak and how to stop it</small></summary>
+<div class="body">
+<h3>Why private-looking files become searchable</h3>
+<ul>
+<li>Someone uploads a file to the website folder and forgets it is public.</li>
+<li>A test or staging site is left online with no password.</li>
+<li>Old backups or drafts stay on the server after a redesign.</li>
+<li>A tool or CMS (website builder) defaults to "public" for uploads.</li>
+<li>A link was shared once, and crawlers followed it.</li>
+</ul>
+<h3>Controls that actually work</h3>
+<div class="tw"><table>
+<tr><th>Control</th><th>What it does</th></tr>
+<tr><td>Authentication</td><td>Puts a real lock on private content. The only true protection.</td></tr>
+<tr><td>Least privilege</td><td>Upload folders are private by default. Public is a deliberate choice.</td></tr>
+<tr><td>Publish checklist</td><td>A human check before anything goes live: is this meant for everyone?</td></tr>
+<tr><td><code>noindex</code> tag or <code>X-Robots-Tag</code></td><td>Asks search engines not to list a page or file.</td></tr>
+<tr><td>Search Console removals</td><td>Speeds up hiding a URL from Google after the real fix.</td></tr>
+<tr><td>Regular self-audit</td><td>The checklist above, every few months.</td></tr>
+<tr><td><code>security.txt</code></td><td>A small file at <code>/.well-known/security.txt</code> telling researchers how to reach you. Common fields: Contact, Expires, Policy.</td></tr>
+</table></div>
+<div class="warn"><b>Common trap:</b> if you block a page in <code>robots.txt</code>, Google cannot crawl it, so it never sees the <code>noindex</code> tag on it, and the bare URL can still show up. Use <code>noindex</code> on a crawlable page, and real login for anything private. Also remember <code>robots.txt</code> is public, so listing secret folders in it advertises them.</div>
+</div>
+</details>
+
+<details>
+<summary><span class="lv">D7</span>Long-answer practice<small>exam style with model answers</small></summary>
+<div class="body">
+<p><b>Q. Explain Google dorking and its role in OSINT. (5 marks)</b><br>Google dorking is the use of search operators like site:, filetype:, quotes and minus to narrow search results. In OSINT it helps analysts quickly find relevant public documents, official advisories and organization-published information from a chosen source. It is passive because it queries Google's index, not the target. Results must be verified on the original page, and use must stay within law and authorization.</p>
+<p><b>Q. Describe how a site owner can use dorking defensively. (5 marks)</b><br>An owner with authorization searches their own domain using site:, filetype: and date operators to see what Google has indexed. They look for unintended documents, old pages or test subdomains. Findings are documented with query, date and URL, then fixed at the source using authentication or removal, and the listing is removed via Search Console. A re-check confirms the fix.</p>
+<p><b>Q. Why does removing a search result not secure a file? (3 marks)</b><br>The search result is only a pointer. The file still sits on the server and can be reached by its link or found by other engines. Security needs the file removed or access-controlled.</p>
+<p><b>Q. List four limitations of dorking. (4 marks)</b><br>Not all pages are indexed. Results may be outdated. Operators change over time and differ across engines. A result alone does not prove a vulnerability or the sensitivity of a file.</p>
+<p><b>Q. What ethical steps follow an accidental discovery? (4 marks)</b><br>Stop investigating, do not download, test or share, record minimal location details, report to the owner through an official security contact, and follow their instructions.</p>
+</div>
+</details>
+
+<details>
+<summary><span class="lv">D8</span>14-day study plan<small>one small task a day</small></summary>
+<div class="body">
+<div class="tw"><table>
+<tr><th>Days</th><th>Do this</th></tr>
+<tr><td>1-2</td><td>Read Level 1. Explain crawling, indexing and passive recon out loud without notes.</td></tr>
+<tr><td>3-4</td><td>Practise the seven core operators. Run each once and write one line on what changed.</td></tr>
+<tr><td>5-6</td><td>Level 3: brackets, multi-domain, excluding. Build five queries of your own from the Recipe Book.</td></tr>
+<tr><td>7</td><td>Rest day. Flip the flashcards only.</td></tr>
+<tr><td>8-9</td><td>Level 4: star, AROUND, ranges, anchor. Note which operators changed or failed.</td></tr>
+<tr><td>10-11</td><td>Level 5: write a mock audit report like the club story, using a pretend domain.</td></tr>
+<tr><td>12</td><td>Level 6: try one query in Google, then Bing, then DuckDuckGo. Compare.</td></tr>
+<tr><td>13</td><td>Answer the long-answer practice questions from memory, then check.</td></tr>
+<tr><td>14</td><td>Teach it to a friend in 10 minutes. Whatever you cannot explain, revise.</td></tr>
+</table></div>
+</div>
+</details>
+
+<details>
+<summary><span class="lv">D9</span>Extended glossary<small>more words you will meet</small></summary>
+<div class="body">
+<div class="tw"><table>
+<tr><th>Term</th><th>Easy meaning</th></tr>
+<tr><td>Attack surface</td><td>Everything about an organization that is reachable from outside</td></tr>
+<tr><td>CMS</td><td>Website builder software like WordPress</td></tr>
+<tr><td>Staging site</td><td>A practice copy of a website, not meant for the public</td></tr>
+<tr><td>Subdomain</td><td>A branch of a domain, like <code>blog.example.com</code></td></tr>
+<tr><td>Metadata</td><td>Hidden details inside a file, like author and software</td></tr>
+<tr><td>Redact</td><td>Black out private details before sharing evidence</td></tr>
+<tr><td>Disclosure</td><td>Telling the owner about a weakness you found</td></tr>
+<tr><td>Scope</td><td>The exact list of things you are allowed to check</td></tr>
+<tr><td>Passive / active recon</td><td>Looking without touching / interacting directly with a target</td></tr>
+<tr><td>Threat intelligence</td><td>Organized knowledge about threats, often built from public sources</td></tr>
+<tr><td>Remediation</td><td>Fixing the problem that was found</td></tr>
+<tr><td>DLP</td><td>Data loss prevention: tools that stop sensitive files from leaving or going public</td></tr>
+</table></div>
+</div>
+</details>
+
+<h2>Mistake museum</h2>
+<div class="mist">
+<div><s>site: cisa.gov</s><br><em>site:cisa.gov</em><br>No space after the colon.</div>
+<div><s>Ten operators in the first try</s><br><em>One block at a time</em><br>So you know what caused what.</div>
+<div><s>"Not in Google, so it doesn't exist"</s><br><em>Results are a sample</em><br>Not everything is indexed.</div>
+<div><s>"Login page = vulnerable"</s><br><em>Login pages are normal</em><br>Vulnerabilities need authorized testing.</div>
+<div><s>Trusting the snippet</s><br><em>Open the real page</em><br>Check domain and date.</div>
+<div><s>Copying a found secret</s><br><em>Stop and report</em><br>Use the official security contact.</div>
+</div>
+
+<h2>Flashcards</h2>
+<p class="sub">Tap a card to flip it.</p>
+<div class="cards" id="cards"></div>
+
+<h2>One-screen cheat sheet</h2>
+<div class="box tw"><table>
+<tr><td><code>"..."</code></td><td>exact phrase</td><td><code>-x</code></td><td>exclude</td></tr>
+<tr><td><code>site:</code></td><td>one website</td><td><code>OR</code></td><td>either</td></tr>
+<tr><td><code>filetype:</code></td><td>file kind</td><td><code>( )</code></td><td>group</td></tr>
+<tr><td><code>after:</code> <code>before:</code></td><td>date fences</td><td><code>*</code></td><td>fill the blank</td></tr>
+<tr><td><code>intitle:</code> <code>inurl:</code></td><td>where it appears</td><td><code>AROUND(n)</code></td><td>words nearby</td></tr>
+<tr><td><code>..</code></td><td>number range</td><td><code>inanchor:</code></td><td>link text</td></tr>
+</table></div>
+<div class="easy"><b>Final takeaway:</b> a good dork is a focused question. Start from a real public source, add one operator at a time, verify the original page, collect the minimum, and stay inside permission and scope.</div>
+
+<footer class="m">Made as an extension of your Google Dorking notes. For lawful learning and authorized security work only.</footer>
+</main>
+
+<script>
+(function(){
+var T=[
+['site:cisa.gov','site:'],['site:nist.gov','site:'],['site:cert-in.org.in','site:'],['site:owasp.org','site:'],
+['filetype:pdf','filetype:'],['"cybersecurity framework"','"'],['-video','-'],['phishing','kw'],['ransomware','kw'],
+['after:2025-01-01','after:'],['before:2026-01-01','before:'],['OR','OR'],['intitle:guide','intitle:'],['inurl:projects','inurl:'],
+['"zero trust * architecture"','*'],['phishing AROUND(4) awareness','AROUND']
+];
+var X={
+'site:':'Only look inside this website','filetype:':'Only files of this type','"':'Exact phrase, words together in order','-':'Remove anything containing this word',
+'after:':'Only results after this date','before:':'Only results before this date','OR':'Either the term before or after','intitle:':'Word must be in the page title',
+'inurl:':'Word must be in the web address','*':'Star = a blank that matches unknown words','AROUND':'Two words must be near each other (within 4 words)','kw':'Ordinary keyword, must appear'
+};
+var qin=document.getElementById('qin'),out=document.getElementById('out'),chips=document.getElementById('chips');
+T.forEach(function(t){var b=document.createElement('button');b.textContent=t[0];b.onclick=function(){qin.value=(qin.value+' '+t[0]).trim();render()};chips.appendChild(b)});
+document.getElementById('clr').onclick=function(){qin.value='';render()};
+function kind(w){
+ if(/^-site:/.test(w))return'-site:';
+ var ops=['site:','filetype:','after:','before:','intitle:','inurl:','inanchor:'];
+ for(var i=0;i<ops.length;i++)if(w.indexOf(ops[i])===0)return ops[i];
+ if(w==='OR'||w==='|')return'OR';
+ if(w.indexOf('AROUND(')>-1)return'AROUND';
+ if(w[0]==='-'&&w.length>1)return'-';
+ if(w[0]==='"')return w.indexOf('*')>-1?'*':'"';
+ return'kw';
+}
+function split(s){var r=[],m,re=/(?:[^\s"]+|"[^"]*"?)+/g;while((m=re.exec(s)))r.push(m[0]);return r}
+function render(){
+ var q=qin.value.trim();out.innerHTML='';
+ if(!q){out.innerHTML='<span class="m" style="color:var(--dim)">empty. tap a chip above.</span>';return}
+ var parts=split(q);
+ parts.forEach(function(w){
+  var k=kind(w),d=document.createElement('div');d.className='tok';
+  var e=document.createElement('code');e.textContent=w;
+  var s=document.createElement('span');
+  s.textContent=(k==='-site:')?'Remove everything from this website':(X[k]||'Keyword');
+  d.appendChild(e);d.appendChild(s);out.appendChild(d)});
+ var a=document.createElement('a');a.className='go';a.target='_blank';a.rel='noopener noreferrer';
+ a.href='https://www.google.com/search?q='+encodeURIComponent(q);a.textContent='run this on Google';
+ out.appendChild(a);
+}
+qin.addEventListener('input',render);render();
+
+var C=[
+['What is a dork?','A search query that uses operators to narrow results.'],
+['Why is dorking "passive"?','You query Google\'s stored index, not the target\'s server.'],
+['site: vs inurl:?','site: limits to a domain. inurl: looks for a word in the URL path.'],
+['Does deleting a Google result fix an exposure?','No. The file still exists. Fix access or delete it at the source.'],
+['robots.txt vs noindex?','robots.txt asks bots not to crawl (public, not security). noindex asks engines not to list the page.'],
+['Why verify snippets?','They can be old, truncated, or from lookalike domains.'],
+['Found something sensitive. Now what?','Stop, don\'t download or test, note the location, report to the owner via official contact.'],
+['Why do old dork lists fail?','Google changes or removes operators. Test current behavior.'],
+['Good first steps for a query?','Broad topic, then site:, then filetype:, then exclusions. One at a time.'],
+['Laws behind unauthorized access?','India IT Act 2000, UK Computer Misuse Act 1990, US CFAA.'],
+['Three questions before typing a dork?','Where should the answer live (site)? What form is it in (filetype)? When must it be from (date)?'],
+['Primary vs secondary source?','Primary is the original publisher. Secondary reports on it. Always check the primary.'],
+['Why does robots.txt not hide a page?','It is public and only asks crawlers to stay away. Real protection needs authentication.'],
+['What is security.txt?','A file at /.well-known/security.txt that tells researchers how to report issues.'],
+['Confidence words in a report?','Confirmed, likely, unverified. Never say proves when you mean suggests.']
+];
+var cw=document.getElementById('cards');
+C.forEach(function(c){
+ var b=document.createElement('button');b.className='fc';
+ b.innerHTML='<span class="qq"></span><span class="a"></span><small>tap to flip</small>';
+ b.querySelector('.qq').textContent=c[0];b.querySelector('.a').textContent=c[1];
+ b.onclick=function(){b.classList.toggle('on')};cw.appendChild(b)});
+
+var boxes=document.querySelectorAll('#chk input'),pb=document.getElementById('pb');
+function upd(){var n=0;boxes.forEach(function(b){if(b.checked)n++});pb.style.width=(n/boxes.length*100)+'%'}
+boxes.forEach(function(b){b.addEventListener('change',upd)});
+})();
+</script>
+</body>
+</html>
